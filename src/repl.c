@@ -41,6 +41,16 @@ typedef struct {
   ssize_t input_length;
 } InputBuffer;
 
+Table* new_table() {
+  Table* tale = (Table*)malloc(sizeof(Table)):
+  table->num_rows = 0;
+  return table;
+}
+
+void free_table(Table* table) {
+    free(table);
+}
+
 InputBuffer* new_input_buffer() {
   InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
   input_buffer->buffer = NULL;
@@ -50,14 +60,15 @@ InputBuffer* new_input_buffer() {
   return input_buffer;
 }
 
+void close_inputbuffer(InputBuffer* input_buffer) {
+  free(input_buffer->buffer);
+  free(input_buffer);
+}
+
 void print_prompt() { printf("db > "); }
 
-
-
-
 void read_input(InputBuffer* input_buffer) {
-  ssize_t bytes_read =
-      getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
+  ssize_t bytes_read = getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
 
   if (bytes_read <= 0) {
     printf("Error reading input\n");
@@ -69,25 +80,22 @@ void read_input(InputBuffer* input_buffer) {
   input_buffer->buffer[bytes_read - 1] = 0;
 }
 
-
-void close_input_buffer(InputBuffer* input_buffer) {
-    free(input_buffer->buffer);
-    free(input_buffer);
-}
-
-
 MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
   if (strcmp(input_buffer->buffer, ".exit") == 0) {
     close_input_buffer(input_buffer);
     exit(EXIT_SUCCESS);
+  } else if (strcmp(input_buffer->buffer, ".help") == 0) {
+    printf("Available commands:\n");
+    printf(".exit - Exit the program\n");
+    printf(".help - Show help message\n");
+    return META_COMMAND_SUCCESS;
   } else {
     //TODO  here implement handling of other input as .exit
     return META_COMMAND_UNRECOGNIZED_COMMAND;
   }
 }
 
-PrepareResult prepare_statement(InputBuffer* input_buffer,
-                                Statement* statement) {
+PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
 
   if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
     statement->type = STATEMENT_INSERT;
