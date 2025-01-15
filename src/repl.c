@@ -22,6 +22,7 @@ typedef enum {
 
 typedef struct {
   StatementType type;
+  Row row_to_insert;
 } Statement;
 
 typedef struct{
@@ -83,6 +84,7 @@ void read_input(InputBuffer* input_buffer) {
 MetaCommandResult do_meta_command(InputBuffer* input_buffer) {
   if (strcmp(input_buffer->buffer, ".exit") == 0) {
     close_input_buffer(input_buffer);
+    free_table(table);
     exit(EXIT_SUCCESS);
   } else if (strcmp(input_buffer->buffer, ".help") == 0) {
     printf("Available commands:\n");
@@ -99,8 +101,18 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
 
   if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
     statement->type = STATEMENT_INSERT;
+    
+    Row* row = &statement->row_to_insert;
+    intargs_assigned = sscanf(input_buffer->buffer, "insert %d %s %s",
+    &row->id, row->username, row->email);
+    
+    if (args_assigned < 3) {
+      return PREPARE_UNRECOGNIZED_STATEMENT;
+    }
+    
     return PREPARE_SUCCESS;
   }
+  
   if (strcmp(input_buffer->buffer, "select") == 0) {
     statement->type = STATEMENT_SELECT;
     return PREPARE_SUCCESS;
