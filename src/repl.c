@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
+#define TABLE_MAX_ROWS 100
 
 typedef enum {
   META_COMMAND_SUCCESS,
@@ -32,7 +31,7 @@ typedef struct{
 } Row;
 
 typedef struct {
-  Row rows[100];
+  Row rows[TABLE_MAX_ROWS];
   size_t num_row;
 } Table;
 
