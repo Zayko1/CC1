@@ -66,9 +66,21 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
         }
         return PREPARE_SUCCESS;
     }
-
-    if (strcmp(input_buffer->buffer, "select") == 0) {
+    
+    if (strcmp(input_buffer->buffer, "select *") == 0) {
         statement->type = STATEMENT_SELECT;
+        statement->row_to_insert.id = 0; // ID par défaut pour SELECT *
+        return PREPARE_SUCCESS;
+    }
+    
+    if (strncmp(input_buffer->buffer, "select where id=", 16) == 0) {
+        statement->type = STATEMENT_SELECT;
+
+        // Extraire directement l'ID
+        if (sscanf(input_buffer->buffer, "select where id=%d", &statement->row_to_insert.id) != 1) {
+            return PREPARE_UNRECOGNIZED_STATEMENT;
+        }
+
         return PREPARE_SUCCESS;
     }
 
@@ -84,8 +96,19 @@ void execute_statement(Statement* statement, BTree* tree) {
             break;
 
         case STATEMENT_SELECT:
-            printf("Displaying rows:\n");
-            print_btree(tree);
+            if (statement->row_to_insert.id == 0) {
+                // Commande SELECT * : afficher toute la table
+                printf("Displaying rows:\n");
+                print_btree(tree);
+            } else {
+                // Commande SELECT WHERE : rechercher une ligne spécifique
+                Row result;
+                if (search_btree(tree, statement->row_to_insert.id, &result)) {
+                    printf("(%d, %s, %s)\n", result.id, result.username, result.email);
+                } else {
+                    printf("No row found with id=%d.\n", statement->row_to_insert.id);
+                }
+            }
             break;
     }
 }
