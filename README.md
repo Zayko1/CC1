@@ -6,7 +6,7 @@ Rouibi Rayane 3SI4
 Ce projet implémente un simple client SQL qui supporte les commandes suivantes :
 
     INSERT <id> <username> <email> : Insère une ligne dans une table.
-    SELECT * : Affiche toutes les lignes de la table sous forme de tableau.
+    SELECT * : Affiche toutes les lignes de la table.
     SELECT WHERE id=<id> : Recherche et affiche une ligne spécifique par son id.
     DELETE WHERE id=<id> : Supprime une ligne de la table par son id.
 
