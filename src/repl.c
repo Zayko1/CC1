@@ -1,8 +1,6 @@
 #include "btree.h"
 #include "repl.h"
 
-
-// Créer un nouvel InputBuffer
 InputBuffer* new_input_buffer() {
     InputBuffer* input_buffer = (InputBuffer*)malloc(sizeof(InputBuffer));
     input_buffer->buffer = NULL;
@@ -11,18 +9,15 @@ InputBuffer* new_input_buffer() {
     return input_buffer;
 }
 
-// Libérer l'InputBuffer
 void close_input_buffer(InputBuffer* input_buffer) {
     free(input_buffer->buffer);
     free(input_buffer);
 }
 
-// Afficher le prompt
 void print_prompt() {
     printf("db > ");
 }
 
-// Lire l'entrée utilisateur
 void read_input(InputBuffer* input_buffer) {
     ssize_t bytes_read = getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
 
@@ -35,7 +30,6 @@ void read_input(InputBuffer* input_buffer) {
     input_buffer->buffer[bytes_read - 1] = 0;
 }
 
-// Gérer les commandes spéciales
 MetaCommandResult do_meta_command(InputBuffer* input_buffer, BTree* tree) {
   if (strcmp(input_buffer->buffer, ".exit") == 0) {
     close_input_buffer(input_buffer);
@@ -47,12 +41,11 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer, BTree* tree) {
     printf(".help - Show help message\n");
     return META_COMMAND_SUCCESS;
   } else {
-    //TODO  here implement handling of other input as .exit
     return META_COMMAND_UNRECOGNIZED_COMMAND;
   }
 }
 
-// Préparer une commande SQL
+// Préparer une commande
 PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement) {
     if (strncmp(input_buffer->buffer, "insert", 6) == 0) {
         statement->type = STATEMENT_INSERT;
@@ -69,25 +62,33 @@ PrepareResult prepare_statement(InputBuffer* input_buffer, Statement* statement)
     
     if (strcmp(input_buffer->buffer, "select *") == 0) {
         statement->type = STATEMENT_SELECT;
-        statement->row_to_insert.id = 0; // ID par défaut pour SELECT *
+        statement->row_to_insert.id = 0; 
         return PREPARE_SUCCESS;
     }
     
     if (strncmp(input_buffer->buffer, "select where id=", 16) == 0) {
         statement->type = STATEMENT_SELECT;
 
-        // Extraire directement l'ID
         if (sscanf(input_buffer->buffer, "select where id=%d", &statement->row_to_insert.id) != 1) {
             return PREPARE_UNRECOGNIZED_STATEMENT;
         }
 
         return PREPARE_SUCCESS;
     }
+    
+    if (strncmp(input_buffer->buffer, "delete where id=", 16) == 0) {
+        statement->type = STATEMENT_DELETE;
+
+        if (sscanf(input_buffer->buffer, "delete where id=%d", &statement->row_to_insert.id) != 1) {
+            return PREPARE_UNRECOGNIZED_STATEMENT;
+        }
+        return PREPARE_SUCCESS;
+    }
 
     return PREPARE_UNRECOGNIZED_STATEMENT;
 }
 
-// Exécuter une commande SQL
+// Exécuter une commande
 void execute_statement(Statement* statement, BTree* tree) {
     switch (statement->type) {
         case STATEMENT_INSERT:
@@ -97,11 +98,9 @@ void execute_statement(Statement* statement, BTree* tree) {
 
         case STATEMENT_SELECT:
             if (statement->row_to_insert.id == 0) {
-                // Commande SELECT * : afficher toute la table
                 printf("Displaying rows:\n");
                 print_btree(tree);
             } else {
-                // Commande SELECT WHERE : rechercher une ligne spécifique
                 Row result;
                 if (search_btree(tree, statement->row_to_insert.id, &result)) {
                     printf("(%d, %s, %s)\n", result.id, result.username, result.email);
@@ -110,10 +109,18 @@ void execute_statement(Statement* statement, BTree* tree) {
                 }
             }
             break;
+            
+            case STATEMENT_DELETE:
+            if (delete_btree(tree, statement->row_to_insert.id)) {
+                printf("Row with id=%d deleted successfully.\n", statement->row_to_insert.id);
+            } else {
+                printf("No row found with id=%d to delete.\n", statement->row_to_insert.id);
+            }
+            break;
     }
 }
 
-// Boucle REPL
+
 void repl(BTree* tree) {
     InputBuffer* input_buffer = new_input_buffer();
     while (true) {
@@ -142,4 +149,3 @@ void repl(BTree* tree) {
         printf("Executed.\n");
     }
 }
-

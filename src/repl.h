@@ -8,7 +8,6 @@
 #include <string.h>
 #include "btree.h"
 
-// Énumérations pour les résultats des commandes et les types de statements
 typedef enum {
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
@@ -21,23 +20,21 @@ typedef enum {
 
 typedef enum {
     STATEMENT_INSERT,
-    STATEMENT_SELECT
+    STATEMENT_SELECT,
+    STATEMENT_DELETE
 } StatementType;
 
-// Structure pour une commande SQL
 typedef struct {
     StatementType type;
     Row row_to_insert;
 } Statement;
 
-// Structure pour l'entrée utilisateur
 typedef struct {
     char* buffer;
     size_t buffer_length;
     ssize_t input_length;
 } InputBuffer;
 
-// Prototypes des fonctions
 InputBuffer* new_input_buffer();
 void close_input_buffer(InputBuffer* input_buffer);
 void print_prompt();

@@ -4,33 +4,39 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-// Définir la structure pour une ligne
+// Structure pour une ligne
 typedef struct {
     int id;
     char username[32];
     char email[255];
 } Row;
 
-// Définir un nœud de l'arbre
 typedef struct BTreeNode {
     Row data;
     struct BTreeNode* left;
     struct BTreeNode* right;
-    int height; // Utilisé pour équilibrer l'arbre
+    int height;
 } BTreeNode;
 
-// Définir la structure de l'arbre
 typedef struct {
     BTreeNode* root;
 } BTree;
 
-// Prototypes des fonctions
 BTree* create_btree();
+void free_node(BTreeNode* node);
 void free_btree(BTree* tree);
+int get_height(BTreeNode* node);
+int get_balance_factor(BTreeNode* node);
+BTreeNode* create_node(Row data);
+BTreeNode* rotate_right(BTreeNode* y);
+BTreeNode* rotate_left(BTreeNode* x);
+BTreeNode* insert_node(BTreeNode* node, Row data);
+void print_node(BTreeNode* node);
 void insert_btree(BTree* tree, Row data);
 bool search_btree(BTree* tree, int id, Row* result);
-void delete_btree(BTree* tree, int id);
+BTreeNode* find_min(BTreeNode* node);
+BTreeNode* delete_node(BTreeNode* node, int id, bool* deleted);
+bool delete_btree(BTree* tree, int id);
 void print_btree(BTree* tree);
 
 #endif
-

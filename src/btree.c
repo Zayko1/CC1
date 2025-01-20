@@ -3,14 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Fonction pour créer un nouvel arbre binaire
+// Créer un nouvel arbre binaire
 BTree* create_btree() {
     BTree* tree = (BTree*)malloc(sizeof(BTree));
     tree->root = NULL;
     return tree;
 }
 
-// Fonction pour libérer un nœud
 void free_node(BTreeNode* node) {
     if (node != NULL) {
         free_node(node->left);
@@ -19,23 +18,20 @@ void free_node(BTreeNode* node) {
     }
 }
 
-// Fonction pour libérer l'arbre
 void free_btree(BTree* tree) {
     free_node(tree->root);
     free(tree);
 }
 
-// Fonction pour obtenir la hauteur d'un nœud
 int get_height(BTreeNode* node) {
     return node ? node->height : 0;
 }
 
-// Fonction pour obtenir le facteur de déséquilibre
+// Obtenir le facteur de déséquilibre
 int get_balance_factor(BTreeNode* node) {
     return node ? get_height(node->left) - get_height(node->right) : 0;
 }
 
-// Fonction pour créer un nouveau nœud
 BTreeNode* create_node(Row data) {
     BTreeNode* node = (BTreeNode*)malloc(sizeof(BTreeNode));
     node->data = data;
@@ -45,7 +41,6 @@ BTreeNode* create_node(Row data) {
     return node;
 }
 
-// Rotation à droite pour équilibrer l'arbre
 BTreeNode* rotate_right(BTreeNode* y) {
     BTreeNode* x = y->left;
     BTreeNode* T2 = x->right;
@@ -59,7 +54,6 @@ BTreeNode* rotate_right(BTreeNode* y) {
     return x;
 }
 
-// Rotation à gauche pour équilibrer l'arbre
 BTreeNode* rotate_left(BTreeNode* x) {
     BTreeNode* y = x->right;
     BTreeNode* T2 = y->left;
@@ -73,7 +67,6 @@ BTreeNode* rotate_left(BTreeNode* x) {
     return y;
 }
 
-// Fonction pour insérer un nœud dans l'arbre
 BTreeNode* insert_node(BTreeNode* node, Row data) {
     if (node == NULL) {
         return create_node(data);
@@ -84,17 +77,13 @@ BTreeNode* insert_node(BTreeNode* node, Row data) {
     } else if (data.id > node->data.id) {
         node->right = insert_node(node->right, data);
     } else {
-        // Clé déjà présente
         return node;
     }
 
-    // Mettre à jour la hauteur
     node->height = 1 + (get_height(node->left) > get_height(node->right) ? get_height(node->left) : get_height(node->right));
 
-    // Vérifier l'équilibrage
     int balance = get_balance_factor(node);
 
-    // Rotation gauche-droite si déséquilibre détecté
     if (balance > 1 && data.id < node->left->data.id) {
         return rotate_right(node);
     }
@@ -116,12 +105,10 @@ BTreeNode* insert_node(BTreeNode* node, Row data) {
     return node;
 }
 
-// Fonction pour insérer un élément dans l'arbre
 void insert_btree(BTree* tree, Row data) {
     tree->root = insert_node(tree->root, data);
 }
 
-// Fonction pour rechercher un élément dans l'arbre
 bool search_btree(BTree* tree, int id, Row* result) {
     BTreeNode* current = tree->root;
     while (current != NULL) {
@@ -134,7 +121,6 @@ bool search_btree(BTree* tree, int id, Row* result) {
     return false;
 }
 
-// Fonction pour imprimer les nœuds de l'arbre
 void print_node(BTreeNode* node) {
     if (node != NULL) {
         print_node(node->left);
@@ -143,8 +129,72 @@ void print_node(BTreeNode* node) {
     }
 }
 
-// Fonction pour afficher l'arbre
+BTreeNode* find_min(BTreeNode* node) {
+    while (node->left != NULL) {
+        node = node->left;
+    }
+    return node;
+}
+
+BTreeNode* delete_node(BTreeNode* node, int id, bool* deleted) {
+    if (node == NULL) {
+        *deleted = false;
+        return NULL;
+    }
+
+    if (id < node->data.id) {
+        node->left = delete_node(node->left, id, deleted);
+    } else if (id > node->data.id) {
+        node->right = delete_node(node->right, id, deleted);
+    } else {
+        *deleted = true;
+        
+        if (node->left == NULL) {
+            BTreeNode* temp = node->right;
+            free(node);
+            return temp;
+        } else if (node->right == NULL) {
+            BTreeNode* temp = node->left;
+            free(node);
+            return temp;
+        }
+
+        BTreeNode* temp = find_min(node->right);
+        node->data = temp->data;
+        node->right = delete_node(node->right, temp->data.id, deleted);
+    }
+    
+    node->height = 1 + (get_height(node->left) > get_height(node->right) ? 
+                        get_height(node->left) : 
+                        get_height(node->right));
+
+    int balance = get_balance_factor(node);
+
+    if (balance > 1 && get_balance_factor(node->left) >= 0) {
+        return rotate_right(node);
+    }
+    if (balance > 1 && get_balance_factor(node->left) < 0) {
+        node->left = rotate_left(node->left);
+        return rotate_right(node);
+    }
+    if (balance < -1 && get_balance_factor(node->right) <= 0) {
+        return rotate_left(node);
+    }
+    if (balance < -1 && get_balance_factor(node->right) > 0) {
+        node->right = rotate_right(node->right);
+        return rotate_left(node);
+    }
+
+    return node;
+}
+
+bool delete_btree(BTree* tree, int id) {
+    bool deleted = false;
+    tree->root = delete_node(tree->root, id, &deleted);
+    return deleted;
+}
+
+// Afficher l'arbre
 void print_btree(BTree* tree) {
     print_node(tree->root);
 }
-
