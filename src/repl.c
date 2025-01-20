@@ -39,6 +39,10 @@ MetaCommandResult do_meta_command(InputBuffer* input_buffer, BTree* tree) {
     printf("Available commands:\n");
     printf(".exit - Exit the program\n");
     printf(".help - Show help message\n");
+    printf("insert - Insert data in the database\n");
+    printf("select * - Display all the rows of the table\n");
+    printf("select where id= - Display the rows of the table who matched with id\n");
+    printf("delete where id= - Delete the rows of the table who matched with id\n");
     return META_COMMAND_SUCCESS;
   } else {
     return META_COMMAND_UNRECOGNIZED_COMMAND;
